@@ -59,11 +59,21 @@ end Proof
 -- SECTION 6: TESTS
 -------------------------------------------------------------------------------
 -- #guard statements for sanity checking (not a substitute for proofs!)
+-- IMPORTANT: Every solution MUST end with a #guard verifying the final answer:
+def actualInput : String := include_str "../inputs/day01.txt"
+#guard solve actualInput = 1076  -- The correct answer for this puzzle
 ```
 
 ## Specification Guidelines
 
-The spec should be **obviously correct by inspection**:
+The spec should be **obviously correct by inspection**, even if inefficient or "uncomputable" for large inputs. The spec exists to define *what* the answer is, not *how* to compute it efficiently.
+
+**Key principle: The spec must be structurally different from the implementation.**
+
+If your spec looks like your implementation, you haven't gained anything—you're just proving the code equals itself. A good spec is:
+- **Naive**: Enumerate all possibilities, count them directly
+- **Declarative**: Describe what the answer *is*, not how to compute it
+- **Inefficient**: O(n²) or worse is fine—clarity over performance
 
 ```lean
 namespace Spec
@@ -71,14 +81,24 @@ namespace Spec
 -- Use types that encode constraints
 abbrev Dial := Fin 100  -- Not Nat!
 
--- Define operations clearly
-def rotate (d : Dial) (n : Nat) : Dial := ...
+-- GOOD: Enumerate every position visited (obviously correct, but O(n))
+def positionsDuringRotation (d : Dial) (rot : Rotation) : List Dial :=
+  -- Generate every single position the dial passes through
+  (List.range rot.dist).map (fun i => ...)
 
--- The spec should read like the problem statement
+-- GOOD: Count by filtering a list (obviously correct)
 def countZeros (rotations : List Rotation) : Nat :=
-  (positions rotations).countP (· == zero)
+  (allPositionsVisited rotations).countP (· == zero)
 
 end Spec
+
+namespace Impl
+
+-- GOOD: Use efficient formula (needs proof it equals spec)
+def countZerosInRotation (pos : Nat) (dist : Nat) : Nat :=
+  (pos + dist) / 100  -- O(1) but not obviously correct
+
+end Impl
 ```
 
 **Good spec properties:**
@@ -86,6 +106,7 @@ end Spec
 - Uses types that make invalid states unrepresentable
 - Prefers recursion/list operations over folds (clearer)
 - Doesn't optimize—that's what the implementation is for
+- **Is structurally different from the implementation**
 
 ## Implementation Guidelines
 
@@ -146,6 +167,38 @@ Each day has two parts, so files are named:
 - `Aoc01-2.lean` - Day 1, Part 2
 - `Aoc02-1.lean` - Day 2, Part 1
 - etc.
+
+## File Structure and Namespaces
+
+**Each solution file must be self-contained and wrapped in a unique namespace.**
+
+Do NOT share types or definitions between files. Each file defines its own `Direction`, `Rotation`, etc. This avoids import conflicts when building all solutions together.
+
+```lean
+/-
+  Advent of Code 2025, Day N Part M
+  Formally verified solution in Lean 4
+-/
+
+namespace Day01Part1  -- Unique namespace per file
+
+-- All sections go here...
+
+end Day01Part1
+```
+
+**Why namespaces?**
+- Files can be imported together without conflicts
+- No dependencies between solution files
+- Each solution is completely self-contained
+
+**Adding solutions to the build:**
+After creating a new solution file, add it to `Aoc2025.lean`:
+```lean
+import «Aoc2025».«Aoc01-1»
+import «Aoc2025».«Aoc01-2»
+-- Add new files here
+```
 
 ## Building and Checking
 

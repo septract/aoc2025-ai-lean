@@ -3,6 +3,8 @@
   Formally verified solution in Lean 4
 -/
 
+namespace Day01Part1
+
 -------------------------------------------------------------------------------
 -- SECTION 1: SHARED TYPES
 -- These types are used by both the specification and implementation.
@@ -255,3 +257,5 @@ L82"
 -- Test on actual input
 def actualInput : String := include_str "../inputs/day01.txt"
 #guard solve actualInput = 1076
+
+end Day01Part1

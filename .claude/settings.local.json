@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(lake env lean:*)"
+      "Bash(lake env lean:*)",
+      "Bash(lake build:*)"
     ],
     "deny": [],
     "ask": []
