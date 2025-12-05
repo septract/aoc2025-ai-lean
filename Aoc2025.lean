@@ -7,3 +7,5 @@ import «Aoc2025».«Aoc02-1»
 import «Aoc2025».«Aoc02-2»
 import «Aoc2025».«Aoc03-1»
 import «Aoc2025».«Aoc03-2»
+import «Aoc2025».«Aoc04-1»
+import «Aoc2025».«Aoc04-2»
