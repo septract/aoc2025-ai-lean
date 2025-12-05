@@ -4,3 +4,4 @@ import Aoc2025.Basic
 import «Aoc2025».«Aoc01-1»
 import «Aoc2025».«Aoc01-2»
 import «Aoc2025».«Aoc02-1»
+import «Aoc2025».«Aoc02-2»
