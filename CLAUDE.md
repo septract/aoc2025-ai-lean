@@ -54,6 +54,7 @@ end Proof
 -- SECTION 5: PARSING AND MAIN
 -------------------------------------------------------------------------------
 -- String parsing, file I/O, main entry point
+-- IMPORTANT: Keep parsing MINIMAL (see Parsing Guidelines below)
 
 -------------------------------------------------------------------------------
 -- SECTION 6: TESTS
@@ -107,6 +108,7 @@ end Impl
 - Prefers recursion/list operations over folds (clearer)
 - Doesn't optimize—that's what the implementation is for
 - **Is structurally different from the implementation**
+- **May be non-computable** - Specs can use mathematical notions from Mathlib (e.g., `Set`, `Finset.card`, cardinality) even if they're not efficiently executable. The spec defines *what* the answer is mathematically; the implementation provides *how* to compute it.
 
 ## Implementation Guidelines
 
@@ -124,6 +126,53 @@ def countZeros (rotations : List Rotation) : Nat :=
 
 end Impl
 ```
+
+## Parsing Guidelines
+
+**Parsing should be MINIMAL.** The parsing section should only convert strings to basic data structures—it should NOT contain problem-solving logic.
+
+**Why this matters:**
+If parsing does all the work (extracting numbers, grouping problems, applying transformations), then:
+1. Spec and Impl become trivially identical (both just operate on pre-processed data)
+2. The `impl_eq_spec` proof is meaningless
+3. The "obviously correct" spec isn't verifying the hard parts
+
+**BAD: Heavy parsing (logic hidden in parsing)**
+```lean
+-- Parsing does all the work
+def parse (input : String) : List Problem :=
+  -- Complex logic: find groups, read columns, form numbers, extract operators
+  ...
+
+-- Spec and Impl are trivially the same
+def Spec.solve (problems : List Problem) := problems.map eval |>.sum
+def Impl.solve (problems : List Problem) := problems.foldl (fun a p => a + eval p) 0
+```
+
+**GOOD: Minimal parsing (logic in Spec/Impl)**
+```lean
+-- Parsing is minimal: just convert to basic types
+abbrev Grid := List String
+
+def parse (input : String) : Grid :=
+  input.splitOn "\n" |>.filter (·.length > 0)
+
+-- Spec contains the problem logic (obviously correct)
+namespace Spec
+def findProblemGroups (grid : Grid) : List (List String) := ...
+def readNumber (col : List Char) : Nat := ...  -- MSD at top
+def solve (grid : Grid) : Nat :=
+  let groups := findProblemGroups grid
+  groups.map (fun g => evalGroup g) |>.sum
+end Spec
+
+-- Impl may use different algorithm (needs proof)
+namespace Impl
+def solve (grid : Grid) : Nat := ...  -- Efficient version
+end Impl
+```
+
+**Rule of thumb:** If removing all Spec/Impl code would make the solution incomplete, your parsing is too heavy.
 
 ## Proof Guidelines
 
@@ -259,6 +308,7 @@ lemma helper_B (x : X) : B x := by sorry
 | `#guard` as proof | Only tests specific inputs | `theorem` with proof |
 | Spec and Impl mixed together | Hard to verify spec is correct | Clear separation |
 | Spec using implementation details | Defeats the purpose | Spec should be independent |
+| Heavy parsing with trivial Spec/Impl | Proof is meaningless | Minimal parsing, logic in Spec/Impl |
 | Linter warnings (non-sorry) | Code quality issues | Fix immediately |
 
 ### Linter Errors
